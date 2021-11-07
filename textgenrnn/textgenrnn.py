@@ -218,7 +218,6 @@ class textgenrnn:
                 weights_path = "{}_weights.hdf5".format(self.config['name'])
                 self.save(weights_path)
 
-
             if multi_gpu:
                 from tensorflow import distribute as distribute
                 strategy = distribute.MirroredStrategy()
@@ -240,11 +239,12 @@ class textgenrnn:
                 if new_model:
                     weights_path = None
                 else:
-                    weights_path = "{}_weights.hdf5".format(self.config['name'])
+                    weights_path = "{}_weights.hdf5".format(
+                        self.config['name'])
 
                 strategy = distribute.MirroredStrategy()
                 with strategy.scope():
-                # Do not locate model/merge on CPU since sample sizes are small.
+                    # Do not locate model/merge on CPU since sample sizes are small.
                     parallel_model = textgenrnn_model(self.num_classes,
                                                       cfg=self.config,
                                                       weights_path=weights_path)
@@ -257,21 +257,24 @@ class textgenrnn:
                 model_t = self.model
 
         model_t.fit(gen, steps_per_epoch=steps_per_epoch,
-                              epochs=num_epochs,
-                              callbacks=[
-                                  LearningRateScheduler(
-                                      lr_linear_decay),
-                                  generate_after_epoch(
-                                      self, gen_epochs,
-                                      max_gen_length),
-                                  save_model_weights(
-                                      self, num_epochs,
-                                      save_epochs)],
-                              verbose=verbose,
-                              max_queue_size=10,
-                              validation_data=gen_val,
-                              validation_steps=val_steps
-                              )
+                    epochs=num_epochs,
+                    callbacks=[
+                        LearningRateScheduler(
+                            lr_linear_decay),
+                        generate_after_epoch(
+                            self, gen_epochs,
+                            max_gen_length),
+                        save_model_weights(
+                            self, num_epochs,
+                            save_epochs,
+                            # directory path to save weights
+                            kwargs.get('save_to'),
+                        )],
+                    verbose=verbose,
+                    max_queue_size=10,
+                    validation_data=gen_val,
+                    validation_steps=val_steps
+                    )
 
         # Keep the text-only version of the model if using context labels
         if context_labels is not None:

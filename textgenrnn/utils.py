@@ -8,7 +8,7 @@ from tensorflow.keras.callbacks import Callback
 from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing import sequence
 from tqdm import trange
-
+from os import path
 
 def textgenrnn_sample(preds, temperature, interactive=False, top_n=3):
     '''
@@ -288,12 +288,13 @@ class generate_after_epoch(Callback):
 
 
 class save_model_weights(Callback):
-    def __init__(self, textgenrnn, num_epochs, save_epochs):
+    def __init__(self, textgenrnn, num_epochs, save_epochs,save_to):
         super().__init__()
         self.textgenrnn = textgenrnn
         self.weights_name = textgenrnn.config['name']
         self.num_epochs = num_epochs
         self.save_epochs = save_epochs
+        self.save_to = save_to if save_to else ''
 
     def on_epoch_end(self, epoch, logs={}):
         if len(self.textgenrnn.model.inputs) > 1:
@@ -302,7 +303,7 @@ class save_model_weights(Callback):
         if self.save_epochs > 0 and (epoch+1) % self.save_epochs == 0 and self.num_epochs != (epoch+1):
             print("Saving Model Weights — Epoch #{}".format(epoch+1))
             self.textgenrnn.model.save_weights(
-                "{}_weights_epoch_{}.hdf5".format(self.weights_name, epoch+1))
+                path.join(self.save_to,"{}_weights_epoch_{}.hdf5".format(self.weights_name, epoch+1)))
         else:
             self.textgenrnn.model.save_weights(
-                "{}_weights.hdf5".format(self.weights_name))
+                path.join(self.save_to,"{}_weights.hdf5".format(self.weights_name)))
